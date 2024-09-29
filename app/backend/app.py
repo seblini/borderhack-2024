@@ -1,45 +1,25 @@
 from flask import Flask
-from urllib.request import urlopen
-from dotenv import load_dotenv
-import os
-import sys
-import json
-import string
 import io
 import wave
+import json
+import base64
+
+from get_wav_file_from_MW import get_wav_file_from_MW
+from osciloscope import makeOsciList
 
 app = Flask(__name__)
 
-@app.route("/<word>")
-def get_from_api(word):
-    load_dotenv()
-    MW_COLLEGIATE_API_KEY = os.getenv('MW_COLLEGIATE_API_KEY')
-    with urlopen(f'https://www.dictionaryapi.com/api/v3/references/collegiate/json/{word}?key={MW_COLLEGIATE_API_KEY}') as r:
-        data = json.load(r)
-    
-    audio = data[0]['hwi']['prs'][0]['sound']['audio']
+@app.route("/get_wav_data/<word>")
+def get_wav_data(word):
+    wav_file = get_wav_file_from_MW(word)
 
-    language_code = 'en'
-    country_code = 'us'
-    audio_format = 'wav'
+    wav_file_base64 = base64.b64encode(wav_file).decode('utf-8')
 
-    subdirectory = audio[0]
-    if 'bix' == audio[:3]:
-        subdirectory = 'bix'
-    elif 'gg' == audio[:2]:
-        subdirectory = 'gg'
-    elif audio[0] in string.punctuation or audio[0].isdigit():
-        subdirectory = 'number'
-    
-    base_filename = audio
+    osciList = makeOsciList(wav_file)
 
-    with urlopen(f'https://media.merriam-webster.com/audio/prons/{language_code}/{country_code}/{audio_format}/{subdirectory}/{base_filename}.{audio_format}') as r:
-        wav_data = r.read()
+    data = {
+        'wav_file': wav_file_base64,
+        'frequency_list': osciList,
+    }
 
-    with wave.open(io.BytesIO(wav_data), 'rb') as wav_file:
-        sample_rate = wav_file.getframerate()
-        num_channels = wav_file.getnchannels()
-        num_frames = wav_file.getnframes()
-        audio_data = wav_file.readframes(num_frames)
-
-    return f'{audio_data}'
+    return osciList
