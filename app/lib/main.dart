@@ -1,6 +1,7 @@
 import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import "dart:math";
 
 void main() {
   runApp(MyApp());
@@ -26,14 +27,14 @@ class MyApp extends StatelessWidget {
 }
 
 class MyAppState extends ChangeNotifier {
-  var current = WordPair.random();
+  var current = all[Random().nextInt(all.length)];
 
   void getNext() {
-    current = WordPair.random();
+    current = all[Random().nextInt(all.length)];
     notifyListeners();
   }
 
-  var favorites = <WordPair>[];
+  var favorites = [];
 
   void toggleFavorite() {
     if (favorites.contains(current)) {
@@ -107,10 +108,10 @@ class GeneratorPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
-    var pair = appState.current;
+    var word = appState.current;
 
     IconData icon;
-    if (appState.favorites.contains(pair)) {
+    if (appState.favorites.contains(word)) {
       icon = Icons.favorite;
     } else {
       icon = Icons.favorite_border;
@@ -120,7 +121,7 @@ class GeneratorPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          BigCard(pair: pair),
+          BigCard(word: word),
           SizedBox(height: 10),
           Row(
             mainAxisSize: MainAxisSize.min,
@@ -150,10 +151,10 @@ class GeneratorPage extends StatelessWidget {
 class BigCard extends StatelessWidget {
   const BigCard({
     super.key,
-    required this.pair,
+    required this.word,
   });
 
-  final WordPair pair;
+  final String word;
 
   @override
   Widget build(BuildContext context) {
@@ -167,9 +168,8 @@ class BigCard extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Text(
-          pair.asLowerCase,
+          word,
           style: style,
-          semanticsLabel: "${pair.first} ${pair.second}",
         ),
       ),
     );
@@ -194,10 +194,10 @@ class FavoritesPage extends StatelessWidget {
           child: Text('You have '
               '${appState.favorites.length} favorites:'),
         ),
-        for (var pair in appState.favorites)
+        for (var word in appState.favorites)
           ListTile(
             leading: Icon(Icons.favorite),
-            title: Text(pair.asLowerCase),
+            title: Text(word),
           ),
       ],
     );
