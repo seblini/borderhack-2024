@@ -10,11 +10,11 @@ import wave
 
 app = Flask(__name__)
 
-@app.route("/")
-def get_from_api():
+@app.route("/<word>")
+def get_from_api(word):
     load_dotenv()
     MW_COLLEGIATE_API_KEY = os.getenv('MW_COLLEGIATE_API_KEY')
-    with urlopen(f'https://www.dictionaryapi.com/api/v3/references/collegiate/json/hello?key={MW_COLLEGIATE_API_KEY}') as r:
+    with urlopen(f'https://www.dictionaryapi.com/api/v3/references/collegiate/json/{word}?key={MW_COLLEGIATE_API_KEY}') as r:
         data = json.load(r)
     
     audio = data[0]['hwi']['prs'][0]['sound']['audio']
